@@ -1,0 +1,1 @@
+.animate-fade-in[data-v-4771e540]{animation:fadeIn-4771e540 .2s ease-out}.animate-slide-up[data-v-4771e540]{animation:slideUp-4771e540 .3s ease-out}@keyframes fadeIn-4771e540{0%{opacity:0}to{opacity:1}}@keyframes slideUp-4771e540{0%{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
