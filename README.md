@@ -2,15 +2,19 @@
 
 **RPG Life** é uma aplicação de produtividade gamificada projetada para transformar suas tarefas diárias, hábitos e reflexões em uma jornada de RPG épica. Ganhe XP, suba de nível e melhore seu personagem enquanto gerencia sua vida real.
 
+
+Totalmente baseada no:
+
+ [![Suba de Nível: O Sistema para Evoluir todos os DIAS (Mesmo Sem Vontade)](https://img.youtube.com/vi/l8pRZqmxJJE/0.jpg)](https://www.youtube.com/watch?v=l8pRZqmxJJE)
+
 ## 🚀 Funcionalidades
 
-- **Missões (Missions):** Gerencie suas tarefas pendentes. Conclua missões para ganhar XP.
-- **Hábitos (Habits):** Acompanhe suas rotinas diárias e mantenha a consistência.
+- **Missões (Missions):** Gerencie suas tarefas pendentes. Conclua missões para ganhar Coins.
+- **Hábitos (Habits):** Acompanhe suas rotinas diárias e mantenha a consistência e ganhe XP.
 - **Reflexões (Reflexões):** Um espaço para registrar seus pensamentos e progresso mental.
-- **Loja (Shop):** Gaste seu ouro (ou pontos) em recompensas.
-- **Sistema de Nível:** Evolua seu avatar (gerado dinamicamente com Minidenticons) conforme completa objetivos.
+- **Loja (Shop):** Gaste seu Coins em recompensas.
 - **PWA Ready:** Instale a aplicação no seu celular ou desktop para acesso rápido.
-- **IA Integration:** Dicas inteligentes e ajuda com a "Regra dos 2 Minutos".
+- **IA Integration:** Digite uma tarefa longa e receba ajuda com a "Regra dos 2 Minutos".
 
 ## 🛠️ Tecnologias Utilizadas
 
@@ -57,4 +61,3 @@
 Este projeto está sob a licença ISC. Confira o arquivo [package.json](package.json) para mais detalhes.
 
 ---
-Feito com ❤️ para gamificar a vida!

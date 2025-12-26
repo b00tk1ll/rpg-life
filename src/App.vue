@@ -121,7 +121,7 @@ const saveName = () => {
       </RouterLink>
       <RouterLink to="/reflection" class="flex flex-col items-center gap-1 p-2 text-slate-400 hover:text-white active:text-game-accent transition-colors">
         <span class="text-xl">📝</span>
-        <span class="text-xs">Reflexão</span>
+        <span class="text-xs">Reflexões</span>
       </RouterLink>
       <RouterLink to="/shop" class="flex flex-col items-center gap-1 p-2 text-slate-400 hover:text-white active:text-game-accent transition-colors">
         <span class="text-xl">🛒</span>
