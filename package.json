@@ -1,0 +1,33 @@
+{
+  "name": "rpg_life",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite --host",
+    "build": "vite build",
+    "preview": "vite preview --host"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.18",
+    "@vitejs/plugin-vue": "^6.0.3",
+    "autoprefixer": "^10.4.23",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.18",
+    "vite": "^7.3.0",
+    "vite-plugin-pwa": "^1.2.0"
+  },
+  "dependencies": {
+    "@vueuse/core": "^14.1.0",
+    "chart.js": "^4.5.1",
+    "lucide-vue-next": "^0.562.0",
+    "minidenticons": "^4.2.1",
+    "pinia": "^3.0.4",
+    "vue-chartjs": "^5.3.3",
+    "vue-router": "^4.6.4"
+  }
+}

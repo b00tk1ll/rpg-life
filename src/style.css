@@ -1,0 +1,23 @@
+@import "tailwindcss";
+
+@theme {
+  --color-game-bg: #0F172A;
+  --color-game-primary: #16357D;
+  --color-game-secondary: #FACC15;
+  --color-game-text: #F8FAFC;
+  --color-game-accent: #38BDF8;
+  --color-game-danger: #EF4444;
+  --color-game-success: #22C55E;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  background-color: var(--color-game-bg);
+  color: var(--color-game-text);
+  font-family: 'Inter', sans-serif;
+  margin: 0;
+  min-height: 100vh;
+}
