@@ -2,6 +2,8 @@
 import { ref } from 'vue'
 import { useMissionStore } from '../stores/missions'
 
+import { deobfuscate } from '../utils/security'
+
 const missionStore = useMissionStore()
 
 const showModal = ref(false)
@@ -10,7 +12,16 @@ const suggestion = ref(null)
 const isLoading = ref(false)
 const error = ref('')
 
-const OPENROUTER_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY
+// A chave virá ofuscada do .env e será decodificada em runtime
+const obfuscatedKey = import.meta.env.VITE_OPENROUTER_API_KEY
+const OPENROUTER_API_KEY = deobfuscate(obfuscatedKey)
+
+// Log de verificação (sem mostrar a chave inteira por segurança)
+if (!OPENROUTER_API_KEY) {
+  console.warn('⚡ API Key não encontrada ou falha na decodificação.')
+} else if (!OPENROUTER_API_KEY.startsWith('sk-or-v1-')) {
+  console.error('⚡ API Key decodificada parece inválida. Verifique se você seguiu o passo de ofuscação corretamente.')
+}
 
 const systemPrompt = `Atua como um mentor de RPG e especialista em produtividade baseado na "Técnica dos 2 Minutos".
 
