@@ -2,6 +2,8 @@
 
 **RPG Life** é uma aplicação de produtividade gamificada projetada para transformar suas tarefas diárias, hábitos e reflexões em uma jornada de RPG épica. Ganhe XP, suba de nível e melhore seu personagem enquanto gerencia sua vida real.
 
+🎮 **[Acesse a versão Live aqui!](https://b00tk1ll.github.io/rpg-life/)**
+
 
 Totalmente baseada no:
 
