@@ -1,19 +1,21 @@
 <script setup>
-import { useStorage } from '@vueuse/core'
+import { useReflectionStore } from '../stores/reflections'
 import { useGameStore } from '../stores/game'
 import TutorialOverlay from '../components/TutorialOverlay.vue'
-import { ref, onMounted } from 'vue'
+import BaseModal from '../components/BaseModal.vue'
+import ConfirmModal from '../components/ConfirmModal.vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { Eye, Pencil, Trash2, MoreVertical, Plus } from 'lucide-vue-next'
 
-const reflections = useStorage('rpg-reflections', [])
-const currentNote = ref('')
-const successMessage = ref('')
-const showModal = ref(false)
+const reflectionStore = useReflectionStore()
 const gameStore = useGameStore()
+const reflections = computed(() => reflectionStore.reflections)
 
 // Tutorial state
 const showTutorial = ref(false)
 
 onMounted(() => {
+  // Tutorial logic
   if (!gameStore.onboarding.visitedViews.reflection && 
       !gameStore.onboarding.skippedTutorials &&
       gameStore.onboarding.completed) {
@@ -21,6 +23,9 @@ onMounted(() => {
       showTutorial.value = true
     }, 300)
   }
+  
+  // Click outside listener for dropdowns
+  document.addEventListener('click', handleClickOutside)
 })
 
 const closeTutorial = () => {
@@ -36,38 +41,85 @@ const skipAllTutorials = () => {
 // Menu state
 const openMenuId = ref(null)
 
-// View/Edit reflection state
-const showViewModal = ref(false)
-const reflectionToView = ref(null)
-const editMode = ref(false)
-const editedText = ref('')
+// Close dropdown when clicking outside
+const handleClickOutside = (event) => {
+  // Check if click is outside dropdown menu
+  if (openMenuId.value !== null && !event.target.closest('.dropdown-menu') && !event.target.closest('.dropdown-trigger')) {
+    openMenuId.value = null
+  }
+}
 
-// Delete confirmation state
-const showDeleteModal = ref(false)
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside)
+})
+
+// Modal state
+const showModal = ref(false)
+const isEditing = ref(false)
+const isViewing = ref(false)
+const activeId = ref(null)
+const currentNote = ref('')
+const successMessage = ref('')
+
+// Delete state
+const showDeleteConfirm = ref(false)
 const reflectionToDelete = ref(null)
 
-const saveReflection = () => {
-    console.log('saveReflection called')
-    console.log('currentNote:', currentNote.value)
+const toggleMenu = (id) => {
+  openMenuId.value = openMenuId.value === id ? null : id
+}
+
+const openAddModal = () => {
+    isEditing.value = false
+    isViewing.value = false
+    activeId.value = null
+    currentNote.value = ''
+    successMessage.value = ''
+    showModal.value = true
+}
+
+const viewReflection = (reflection) => {
+    openMenuId.value = null
+    isEditing.value = false
+    isViewing.value = true
+    activeId.value = reflection.id
+    currentNote.value = reflection.text
+    showModal.value = true
+}
+
+const editReflection = (reflection) => {
+    openMenuId.value = null
+    isEditing.value = true
+    isViewing.value = false
+    activeId.value = reflection.id
+    currentNote.value = reflection.text
+    showModal.value = true
     
-    if (!currentNote.value || !currentNote.value.trim()) {
-        console.error('No note content')
-        return
+    // If coming from view mode
+    if (isViewing.value) isViewing.value = false
+}
+
+const switchToEdit = () => {
+    isEditing.value = true
+    isViewing.value = false
+}
+
+const saveReflection = () => {
+    if (!currentNote.value || !currentNote.value.trim()) return
+    
+    if (isEditing.value) {
+        reflectionStore.updateReflection(activeId.value, currentNote.value)
+        successMessage.value = 'Reflexão atualizada!'
+    } else {
+        reflectionStore.addReflection(currentNote.value)
+        successMessage.value = 'Reflexão salva! ✨'
     }
     
-    reflections.value.unshift({
-        id: Date.now(),
-        date: new Date().toLocaleDateString('pt-BR'),
-        text: currentNote.value
-    })
-    console.log('Reflection saved to storage')
-    
-    currentNote.value = ''
-    successMessage.value = 'Reflexão salva! ✨'
     setTimeout(() => {
-        successMessage.value = ''
         showModal.value = false
-    }, 1500)
+        successMessage.value = ''
+        currentNote.value = ''
+    }, 1000)
 }
 
 const closeModal = () => {
@@ -76,60 +128,18 @@ const closeModal = () => {
     successMessage.value = ''
 }
 
-const toggleMenu = (id) => {
-  openMenuId.value = openMenuId.value === id ? null : id
-}
-
-const viewReflection = (reflection) => {
+const promptDelete = (reflection) => {
     openMenuId.value = null
-    editMode.value = false
-    reflectionToView.value = reflection
-    editedText.value = reflection.text
-    showViewModal.value = true
-}
-
-const editReflection = (reflection) => {
-    openMenuId.value = null
-    editMode.value = true
-    reflectionToView.value = reflection
-    editedText.value = reflection.text
-    showViewModal.value = true
-}
-
-const saveEdit = () => {
-    if (reflectionToView.value && editedText.value.trim()) {
-        const index = reflections.value.findIndex(r => r.id === reflectionToView.value.id)
-        if (index !== -1) {
-            reflections.value[index].text = editedText.value.trim()
-        }
-        closeViewModal()
-    }
-}
-
-const deleteReflection = (reflection) => {
-    openMenuId.value = null
-    reflectionToDelete.value = reflection.id
-    showDeleteModal.value = true
+    reflectionToDelete.value = reflection
+    showDeleteConfirm.value = true
 }
 
 const confirmDelete = () => {
     if (reflectionToDelete.value) {
-        reflections.value = reflections.value.filter(r => r.id !== reflectionToDelete.value)
+        reflectionStore.deleteReflection(reflectionToDelete.value.id)
     }
-    showDeleteModal.value = false
+    showDeleteConfirm.value = false
     reflectionToDelete.value = null
-}
-
-const cancelDelete = () => {
-    showDeleteModal.value = false
-    reflectionToDelete.value = null
-}
-
-const closeViewModal = () => {
-    showViewModal.value = false
-    reflectionToView.value = null
-    editMode.value = false
-    editedText.value = ''
 }
 </script>
 
@@ -158,32 +168,32 @@ const closeViewModal = () => {
                   <div class="relative">
                       <button 
                           @click.stop="toggleMenu(r.id)"
-                          class="text-slate-400 hover:text-white transition-colors p-1"
+                          class="dropdown-trigger text-slate-400 hover:text-white transition-colors p-1"
                       >
-                          ⋮
+                          <MoreVertical :size="20" />
                       </button>
                       <!-- Dropdown Menu -->
                       <div 
                           v-if="openMenuId === r.id"
-                          class="absolute right-0 top-8 bg-slate-800 border border-slate-700 rounded-lg shadow-xl z-10 min-w-[140px] overflow-hidden"
+                          class="dropdown-menu absolute right-0 top-8 bg-slate-800 border border-slate-700 rounded-lg shadow-xl z-10 min-w-[140px] overflow-hidden"
                       >
                           <button 
                               @click="viewReflection(r)"
                               class="w-full px-4 py-2 text-left text-sm hover:bg-slate-700 transition-colors flex items-center gap-2"
                           >
-                              👁️ Ver
+                              <Eye :size="16" class="text-blue-400" /> Ver
                           </button>
                           <button 
                               @click="editReflection(r)"
                               class="w-full px-4 py-2 text-left text-sm hover:bg-slate-700 transition-colors flex items-center gap-2"
                           >
-                              ✏️ Editar
+                              <Pencil :size="16" class="text-slate-400" /> Editar
                           </button>
                           <button 
-                              @click="deleteReflection(r)"
+                              @click="promptDelete(r)"
                               class="w-full px-4 py-2 text-left text-sm text-red-400 hover:bg-red-900/20 transition-colors flex items-center gap-2"
                           >
-                              🗑️ Excluir
+                              <Trash2 :size="16" /> Excluir
                           </button>
                       </div>
                   </div>
@@ -195,11 +205,11 @@ const closeViewModal = () => {
 
     <!-- Floating Add Button (outside main flow) -->
     <button 
-      @click="showModal = true"
+      @click="openAddModal"
       class="fixed bottom-24 right-4 bg-blue-900 hover:bg-blue-800 text-white w-14 h-14 rounded-full shadow-lg transition hover:scale-110 flex items-center justify-center text-2xl"
       title="Adicionar Reflexão"
     >
-      ➕
+      <Plus :size="32" />
     </button>
 
     <!-- Tutorial Overlay -->
@@ -222,96 +232,60 @@ const closeViewModal = () => {
       @skip-all="skipAllTutorials"
     />
 
-    <!-- View/Edit Reflection Modal -->
-    <div v-if="showViewModal && reflectionToView" class="fixed inset-0 bg-black/80 flex items-center justify-center z-[100] p-4 backdrop-blur-sm">
-      <div class="bg-slate-800 p-6 rounded-lg max-w-md w-full border border-blue-800 shadow-2xl relative">
-        <button @click="closeViewModal" class="absolute top-2 right-2 text-slate-400 hover:text-white text-xl">✕</button>
-        
-        <h2 class="text-xl font-bold text-blue-700 mb-2">
-            {{ editMode ? '✏️ Editar Reflexão' : '📝 Reflexão' }}
-        </h2>
-        <p class="text-xs text-slate-500 mb-4">{{ reflectionToView.date }}</p>
-        
-        <div v-if="editMode" class="space-y-4">
-            <textarea 
-                v-model="editedText"
-                class="w-full h-64 bg-slate-900 border border-slate-700 rounded p-4 text-white focus:border-blue-800 outline-none resize-none"
-                placeholder="Escreva sua reflexão..."
-            ></textarea>
-            <div class="flex gap-3">
-                <button 
-                    @click="closeViewModal"
-                    class="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 rounded transition-colors"
-                >
-                    Cancelar
-                </button>
-                <button 
-                    @click="saveEdit"
-                    :disabled="!editedText.trim()"
-                    class="flex-1 bg-blue-900 hover:bg-blue-800 disabled:bg-slate-600 text-white font-bold py-3 rounded transition-colors"
-                >
-                    Salvar
-                </button>
+    <!-- Unified Reflection Modal (Add / View / Edit) -->
+    <BaseModal
+      :show="showModal"
+      :title="isViewing ? 'Reflexão' : (isEditing ? 'Editar Reflexão' : 'Nova Reflexão')"
+      border-color="border-blue-800"
+      max-width="max-w-md"
+      @close="closeModal"
+    >
+        <!-- View Mode Text -->
+        <div v-if="isViewing" class="space-y-4">
+             <div class="bg-slate-900 p-4 rounded border border-slate-700 max-h-96 overflow-y-auto">
+                <p class="text-slate-200 whitespace-pre-wrap">{{ currentNote }}</p>
             </div>
+            <button 
+                @click="switchToEdit"
+                class="w-full bg-slate-700 hover:bg-blue-900 text-white font-bold py-3 rounded transition-colors flex items-center justify-center gap-2"
+            >
+                <Pencil :size="18" /> Editar
+            </button>
         </div>
-        <div v-else class="bg-slate-900 p-4 rounded border border-slate-700 max-h-96 overflow-y-auto">
-          <p class="text-slate-200 whitespace-pre-wrap">{{ reflectionToView.text }}</p>
-        </div>
-      </div>
-    </div>
 
-    <!-- Add Reflection Modal -->
-    <div v-if="showModal" class="fixed inset-0 bg-black/80 flex items-center justify-center z-[100] p-4">
-      <div class="bg-slate-800 p-6 rounded-lg max-w-md w-full border border-blue-800 shadow-2xl relative">
-        <button @click="closeModal" class="absolute top-2 right-2 text-slate-400 hover:text-white text-xl">✕</button>
-        
-        <h2 class="text-xl font-bold text-blue-700 mb-4">📝 Nova Reflexão</h2>
-        <p class="text-slate-400 text-sm mb-4">O que você aprendeu? Onde pode melhorar?</p>
-        
-        <textarea 
-            v-model="currentNote"
-            class="w-full h-32 bg-slate-900 border border-slate-700 rounded p-3 text-white focus:border-blue-800 outline-none mb-4"
-            placeholder="Escreva aqui..."
-        ></textarea>
-        
-        <button 
-            @click.prevent.stop="saveReflection"
-            :disabled="!currentNote.trim() || !!successMessage"
-            :class="successMessage ? 'bg-green-600' : 'bg-blue-900 hover:bg-blue-800'"
-            class="w-full disabled:bg-slate-600 disabled:cursor-not-allowed text-white font-bold py-3 rounded transition-colors"
-        >
-            <template v-if="successMessage">
-                ✓ {{ successMessage }}
-            </template>
-            <template v-else>
-                Salvar Reflexão
-            </template>
-        </button>
-      </div>
-    </div>
+        <!-- Edit/Add Mode Inputs -->
+        <div v-else class="space-y-4">
+            <p v-if="!isEditing" class="text-slate-400 text-sm">O que você aprendeu? Onde pode melhorar?</p>
+            <textarea 
+                v-model="currentNote"
+                class="w-full bg-slate-900 border border-slate-700 rounded p-3 text-white focus:border-blue-800 outline-none resize-none"
+                :class="isEditing ? 'h-64' : 'h-32'"
+                placeholder="Escreva aqui..."
+                autofocus
+            ></textarea>
+
+            <button 
+                @click="saveReflection"
+                :disabled="!currentNote.trim() || !!successMessage"
+                :class="successMessage ? 'bg-green-600' : 'bg-blue-900 hover:bg-blue-800'"
+                class="w-full disabled:bg-slate-600 disabled:cursor-not-allowed text-white font-bold py-3 rounded transition-colors"
+            >
+                {{ successMessage ? `✓ ${successMessage}` : (isEditing ? 'Salvar Alterações' : 'Salvar Reflexão') }}
+            </button>
+        </div>
+    </BaseModal>
 
     <!-- Delete Confirmation Modal -->
-    <div v-if="showDeleteModal" class="fixed inset-0 bg-black/80 flex items-center justify-center z-[100] p-4 backdrop-blur-sm">
-      <div class="bg-slate-800 p-6 rounded-2xl max-w-sm w-full border border-red-500/50 shadow-2xl animate-fade-in">
-        <h2 class="text-xl font-bold text-red-400 mb-2">🗑️ Deletar Reflexão?</h2>
-        <p class="text-slate-300 text-sm mb-6">Tem certeza que deseja deletar esta reflexão? Esta ação não pode ser desfeita.</p>
-        
-        <div class="flex gap-3">
-          <button 
-            @click="cancelDelete"
-            class="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 rounded transition-colors"
-          >
-            Cancelar
-          </button>
-          <button 
-            @click="confirmDelete"
-            class="flex-1 bg-red-600 hover:bg-red-500 text-white font-bold py-3 rounded transition-colors"
-          >
-            Deletar
-          </button>
-        </div>
-      </div>
-    </div>
+    <ConfirmModal
+      :show="showDeleteConfirm"
+      title="Deletar Reflexão?"
+      message="Tem certeza que deseja deletar esta reflexão? Esta ação não pode ser desfeita."
+      confirm-text="Deletar"
+      cancel-text="Cancelar"
+      type="danger"
+      @confirm="confirmDelete"
+      @cancel="showDeleteConfirm = false"
+    />
   </div>
 </template>
 

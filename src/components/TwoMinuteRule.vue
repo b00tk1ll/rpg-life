@@ -1,10 +1,12 @@
 <script setup>
 import { ref } from 'vue'
 import { useMissionStore } from '../stores/missions'
-
+import { useToastStore } from '../stores/toast'
+import BaseModal from './BaseModal.vue'
 import { deobfuscate } from '../utils/security'
 
 const missionStore = useMissionStore()
+const toastStore = useToastStore()
 
 const showModal = ref(false)
 const taskInput = ref('')
@@ -112,29 +114,14 @@ const generateSuggestion = async () => {
   }
 }
 
-const successMessage = ref('')
-
 const addAsMission = () => {
-  console.log('addAsMission called')
-  console.log('suggestion.value:', suggestion.value)
-  console.log('taskInput.value:', taskInput.value)
-  
   const missionText = suggestion.value?.sugestao_2_minutos || taskInput.value
-  console.log('missionText to add:', missionText)
   
-  if (!missionText || !missionText.trim()) {
-    console.error('No mission text to add')
-    return
-  }
+  if (!missionText || !missionText.trim()) return
   
   missionStore.addMission('bonus', missionText, 10)
-  console.log('Mission added to store')
-  
-  successMessage.value = 'Missão adicionada como Bônus! ✨'
-  setTimeout(() => {
-    successMessage.value = ''
-    closeModal()
-  }, 1500)
+  toastStore.show('Missão adicionada como Bônus! ✨', 'success')
+  closeModal()
 }
 
 const closeModal = () => {
@@ -142,7 +129,6 @@ const closeModal = () => {
   suggestion.value = null
   taskInput.value = ''
   error.value = ''
-  successMessage.value = ''
 }
 </script>
 
@@ -156,11 +142,12 @@ const closeModal = () => {
       ⚡
     </button>
 
-    <div v-if="showModal" class="fixed inset-0 bg-black/80 flex items-center justify-center z-[100] p-4">
-      <div class="bg-slate-800 p-6 rounded-lg max-w-md w-full border border-orange-500 shadow-2xl relative">
-        <button @click="closeModal" class="absolute top-2 right-2 text-slate-400 hover:text-white">✕</button>
-        
-        <h2 class="text-xl font-bold text-orange-400 mb-4">⚡ Regra dos 2 Minutos</h2>
+    <BaseModal
+      :show="showModal"
+      title="⚡ Regra dos 2 Minutos"
+      border-color="border-orange-500"
+      @close="closeModal"
+    >
         <p class="text-sm text-slate-300 mb-4">Está procrastinando? Digite a tarefa difícil e a IA vai simplificá-la.</p>
         
         <input 
@@ -208,18 +195,11 @@ const closeModal = () => {
           <!-- Botão para adicionar como missão -->
           <button 
             @click.prevent.stop="addAsMission"
-            :disabled="!!successMessage"
-            class="w-full bg-blue-600 hover:bg-blue-500 disabled:bg-green-600 disabled:cursor-not-allowed text-white font-bold py-3 px-4 rounded transition-colors mt-4"
+            class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-4 rounded transition-colors mt-4"
           >
-            <template v-if="successMessage">
-              ✓ {{ successMessage }}
-            </template>
-            <template v-else>
               ➕ Add como Missão Bônus
-            </template>
           </button>
         </div>
-      </div>
-    </div>
+    </BaseModal>
   </div>
 </template>

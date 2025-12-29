@@ -3,6 +3,7 @@ import { RouterView, RouterLink } from 'vue-router'
 import { useGameStore } from './stores/game'
 import WelcomeModal from './components/WelcomeModal.vue'
 import InstallPrompt from './components/InstallPrompt.vue'
+import ToastContainer from './components/ToastContainer.vue'
 import { ref, onMounted } from 'vue'
 
 const gameStore = useGameStore()
@@ -170,6 +171,9 @@ const saveName = () => {
     
     <!-- PWA Install Prompt -->
     <InstallPrompt />
+    
+    <!-- Global Toasts -->
+    <ToastContainer />
   </div>
 </template>
 

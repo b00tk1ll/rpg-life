@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { useStorage } from '@vueuse/core'
 import { generateAvatar } from '../utils/avatar'
+import { LEVEL_CONFIG } from '../utils/constants'
 
 export const useGameStore = defineStore('game', {
     state: () => {
@@ -70,7 +71,7 @@ export const useGameStore = defineStore('game', {
         checkLevelUp() {
             // Simple leveling formula: Level = 1 + floor(0.1 * sqrt(XP))
             // Or explicit thresholds. Let's use specific thresholds for now.
-            const threshold = 100 * Math.pow(this.user.level, 1.5)
+            const threshold = LEVEL_CONFIG.BASE_XP * Math.pow(this.user.level, LEVEL_CONFIG.EXPONENT)
 
             if (this.user.xp >= threshold) {
                 this.user.level++
@@ -113,8 +114,8 @@ export const useGameStore = defineStore('game', {
 
     getters: {
         levelProgress: (state) => {
-            const threshold = 100 * Math.pow(state.user.level, 1.5)
-            const prevThreshold = 100 * Math.pow(state.user.level - 1, 1.5)
+            const threshold = LEVEL_CONFIG.BASE_XP * Math.pow(state.user.level, LEVEL_CONFIG.EXPONENT)
+            const prevThreshold = LEVEL_CONFIG.BASE_XP * Math.pow(state.user.level - 1, LEVEL_CONFIG.EXPONENT)
             // Calculate percentage within current level
             // This is a simplified view; for level 1, prev is 0.
             return (state.user.xp / threshold) * 100

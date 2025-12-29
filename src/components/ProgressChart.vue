@@ -37,11 +37,11 @@ const getDateString = (daysOffset) => {
 const chartData = computed(() => {
   const history = gameStore.history
   
-  // Generate 7 days: 3 before, today, 3 after
+  // Generate past 7 days
   const days = []
   const dayLabels = []
   
-  for (let i = -3; i <= 3; i++) {
+  for (let i = -7; i <= 0; i++) {
     const d = new Date()
     d.setDate(d.getDate() + i)
     days.push(d.toISOString().split('T')[0])
@@ -74,12 +74,8 @@ const chartData = computed(() => {
   
   // For simplicity, show the XP delta for each day (gains/losses that day)
   // Future days show 0
-  days.forEach((day, index) => {
-    if (index <= 3) { // Past days and today
+  days.forEach((day) => {
       dataPoints.push(xpByDay[day] || 0)
-    } else { // Future days
-      dataPoints.push(null) // No data for future
-    }
   })
 
   return {

@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { useStorage } from '@vueuse/core'
 import { useGameStore } from './game'
+import { MISSION_REWARDS } from '../utils/constants'
 
 export const useMissionStore = defineStore('missions', {
     state: () => ({
@@ -8,9 +9,30 @@ export const useMissionStore = defineStore('missions', {
         // referencing the last reset date.
         lastReset: useStorage('rpg-last-reset', new Date().toISOString().split('T')[0]),
         dailies: useStorage('rpg-dailies', {
-            main: [],
-            secondary: [],
-            bonus: []
+            main: [
+                {
+                    id: 1,
+                    text: 'Completar tarefa principal do dia',
+                    reward: 25,
+                    completed: false
+                }
+            ],
+            secondary: [
+                {
+                    id: 2,
+                    text: 'Fazer 30 minutos de exercício',
+                    reward: 15,
+                    completed: false
+                }
+            ],
+            bonus: [
+                {
+                    id: 3,
+                    text: 'Ler 10 páginas de um livro',
+                    reward: 10,
+                    completed: false
+                }
+            ]
         })
     }),
 
@@ -56,6 +78,13 @@ export const useMissionStore = defineStore('missions', {
                 reward, // 25, 15, or 10
                 completed: false
             })
+        },
+
+        updateMission(category, id, newText) {
+            const task = this.dailies[category].find(t => t.id === id)
+            if (task) {
+                task.text = newText
+            }
         },
 
         deleteMission(category, id) {
